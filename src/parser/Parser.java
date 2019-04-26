@@ -47,7 +47,7 @@ public class Parser {
 
 	   void match(int t) throws IOException {
 	      if( look.tag == t ) move();
-	      else error("syntax error");
+	      else error("syntax error : "+t+" not match");
 	   }
 
 	   public void program() throws IOException {  // program -> block
@@ -111,7 +111,19 @@ public class Parser {
 	         if( look.tag != Tag.ELSE ) return new If(x, s1);
 	         match(Tag.ELSE);
 	         s2 = stmt();
-	         return new Else(x, s1, s2);
+				return new Else(x, s1, s2);
+				
+			case Tag.FOR:
+				For fornode = new For();
+				savedStmt = Stmt.Enclosing; Stmt.Enclosing = fornode;
+				// s1 for s_begin, x for s_judge, s2 for s_end
+				match(Tag.FOR);match('('); s1 = stmt(); x = bool(); match(';'); s2 = stmt(); match(')');
+				//match(Tag.FOR);match('('); x = bool(); match(')');
+				//s1 = null; s2 = null;
+				s = stmt();
+				fornode.init(s1,x,s2,s);
+				Stmt.Enclosing = savedStmt;
+				return fornode;
 
 	      case Tag.WHILE:
 	         While whilenode = new While();
